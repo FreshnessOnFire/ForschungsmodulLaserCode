@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define LASER_PIN 10
+#define MODESWITCH_PIN 5
 
 double frequency = 5;  //[Hz]
-double wait = (1 / frequ) * 1000;
+double f_wait = (1 / frequ) * 1000; //on-Time for transmission [ms] 
+int initAmnt = 10;
 
 void setup() {
-  // put your setup code here, to run once:
   pinMode(LASER_PIN, OUTPUT);
 }
 
@@ -14,13 +15,13 @@ void laser(int on) {
   digitalWrite(LASER_PIN, on);
 }
 
-void initiate(double frequ, double t_wait) {
+void initiate(double wait, double t_wait) {
   laser(1);
   delay(t_wait);
   laser(0);
   delay(500);
   int i;
-  for (i = 0; i < 10; i++) {
+  for (i = 0; i < initAmnt; i++) {
     laser(1);
     delay(wait);
     laser(0);
@@ -50,14 +51,12 @@ void sendString(String sInput) {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  if (digitalRead(5) == HIGH) {
-    initiate(frequency, 5000);
+  if (digitalRead(MODESWITCH_PIN) == HIGH) {
+    initiate(f_wait, 5000);
   } else {
     if (Serial.available()) {
       String userInput = Serial.readStringUntil('\n');
       sendString(userInput);
     }
-    
   }
 }
