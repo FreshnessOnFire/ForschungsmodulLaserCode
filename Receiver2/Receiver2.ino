@@ -10,9 +10,12 @@ double onTime = 0;
 double timer = 0;
 bool toggleBool = false;
 int elapsedTimeThreash = 100;
-
 double f_wait = 0;
-int inputBuffer[256];
+
+int bufferSize = 512;
+byte inputBuffer[bufferSize];
+int stopSize
+byte *stop = [0 0 0 0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1];
 
 int getLstate(int threash) {
   if ((analogRead(DETECT_PIN) >= threash) {
@@ -20,6 +23,24 @@ int getLstate(int threash) {
   } else {
     return 0;
   }
+}
+
+char *decode()
+
+int findMatchIndex(byte* inptArr) {
+  for (int i = 0; i <= bufferSize - stopSize; i++) {
+    bool match = true;
+    for (int j = 0; j < stopSize; j++) {
+      if (inptArr[i + j] != stop[j]) {
+        match = false;
+        break;
+      }
+    }
+    if (match) {
+      return i;  
+    }
+  }
+  return -1;
 }
 
 void setup() {
@@ -46,7 +67,10 @@ void loop() {
   }
   onTime = onTime / 10;
   delay(onTime * 5);
-
-
+  int i = 0;
+  while (i < bufferSize) {
+    inputBuffer[i] = gelLstate(detectThreash);
+    delay(onTime);
+  }
 
 }
