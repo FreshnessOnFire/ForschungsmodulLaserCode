@@ -1,6 +1,5 @@
 #define DETECT_PIN 1
 
-bool init = false;
 bool inter = false;
 bool initialized = false;
 
@@ -13,25 +12,44 @@ int elapsedTimeThreash = 100;
 double f_wait = 0;
 
 int bufferSize = 512;
-byte inputBuffer[bufferSize];
-int stopSize
-byte *stop = [0 0 0 0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1];
+byte inputBuffer[512];
+
+int stopSize = 24;
+byte stopCode[24];
+
 
 int getLstate(int threash) {
-  if ((analogRead(DETECT_PIN) >= threash) {
+  if ((analogRead(DETECT_PIN) >= threash)) {
     return 1;
   } else {
     return 0;
   }
 }
 
-char *decode()
+char *decode(int idx) {
+  byte inputMsg[idx];
+  for (int i = 0; i <= idx; i++) {
+    inputMsg[i] = inputBuffer[i];
+  }
+
+  int charlen = sizeof(inputMsg) / 8;
+  char msg[charlen];
+  int i = 0;
+  for (int j = 0; j < charlen; j++) {
+    msg[i] | inputBuffer[i];
+    msg[i] << 1;
+    if ((j != 0) && (j % 8 == 0)) {
+      ++i;
+    }
+  }
+  return msg;
+}
 
 int findMatchIndex(byte* inptArr) {
   for (int i = 0; i <= bufferSize - stopSize; i++) {
     bool match = true;
     for (int j = 0; j < stopSize; j++) {
-      if (inptArr[i + j] != stop[j]) {
+      if (inptArr[i + j] != stopCode[j]) {
         match = false;
         break;
       }
@@ -45,12 +63,49 @@ int findMatchIndex(byte* inptArr) {
 
 void setup() {
   pinMode(13, OUTPUT);
+  Serial.begin(9600);
+  stopCode[0] = 0;
+  stopCode[1] = 0;
+  stopCode[2] = 0;
+  stopCode[3] = 0;
+  stopCode[4] = 0;
+
+  stopCode[5] = 1;
+  stopCode[6] = 0;
+
+  stopCode[7] = 1;
+  stopCode[8] = 0;
+
+  stopCode[9] = 1;
+  stopCode[10] = 0;
+
+  stopCode[11] = 1;
+  stopCode[12] = 0;
+
+  stopCode[13] = 1;
+  stopCode[14] = 0;
+
+  stopCode[15] = 1;
+  stopCode[16] = 0;
+
+  stopCode[17] = 1;
+  stopCode[18] = 0;
+
+  stopCode[19] = 1;
+  stopCode[20] = 0;
+
+  stopCode[21] = 1;
+  stopCode[22] = 0;
+
+  stopCode[23] = 1;
+
+  //[0 0 0 0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1]
 }
 
 void loop() {
   int onCounter = 0;
   double timeElapsed = 0;
-  while onCounter != 10 {
+  while (onCounter != 10) {
     if ((getLstate(detectThreash) == 1) && (toggleBool == false)) {
       toggleBool = true;
       timer = millis();
@@ -65,12 +120,20 @@ void loop() {
       onCounter = 0;
     }
   }
+  digitalWrite(13, HIGH);
   onTime = onTime / 10;
   delay(onTime * 5);
   int i = 0;
   while (i < bufferSize) {
-    inputBuffer[i] = gelLstate(detectThreash);
+    inputBuffer[i] = getLstate(detectThreash);
     delay(onTime);
   }
-
+  digitalWrite(13, LOW);
+  int indx = findMatchIndex(inputBuffer);
+  if (indx == -1) {
+    Serial.println("Error: Buffer overflown or package lost");
+  }
+  char *message = decode(indx);
+  Serial.print("Message received: ");
+  Serial.println(message);
 }
