@@ -20,7 +20,7 @@ void sendMsg(String sInput) {
   digitalWrite(13, HIGH);
   int bits[sizeof(cInput) * 8];
   // sent startcode
-  for (int i = 0; i < 24 * 8; i++) {
+  for (int i = 0; i < 24; i++) {
     laser(startCode[i]);
     delay(waitMillis);
   }
@@ -32,7 +32,7 @@ void sendMsg(String sInput) {
     delay(waitMillis);
   }
   // sent stopcode
-  for (int i = 0; i < 24 * 8; i++) {
+  for (int i = 0; i < 25; i++) {
     laser(stopCode[i]);
     delay(waitMillis);
   }
@@ -41,6 +41,7 @@ void sendMsg(String sInput) {
 }
 
 void setup() {
+  Serial.begin(9600);
   pinMode(LASER_PIN, OUTPUT);
   pinMode(13, OUTPUT);
 
@@ -100,5 +101,8 @@ void loop() {
   if (Serial.available()) {
     String userInput = Serial.readStringUntil('\n');
     sendMsg(userInput);
+    Serial.print("Message: '");
+    Serial.print(userInput);
+    Serial.println("' has been send.");
   }
 }

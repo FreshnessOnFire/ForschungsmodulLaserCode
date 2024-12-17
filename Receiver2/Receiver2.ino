@@ -8,11 +8,11 @@ int detectThreash = 130;
 double onTime = 0;
 double timer = 0;
 bool toggleBool = false;
-int elapsedTimeThreash = 100;
+int elapsedTimeThreash = 2000;
 double f_wait = 0;
 
-int bufferSize = 512;
-byte inputBuffer[512];
+int bufferSize = 256;
+byte inputBuffer[256];
 
 int stopSize = 25;
 byte stopCode[25];
@@ -105,24 +105,22 @@ void loop() {
     if ((getLstate(detectThreash) == 1) && (toggleBool == false)) {
       toggleBool = true;
       timer = millis();
-      timeElapsed = millis();
     } else if ((getLstate(detectThreash) == 0) && (toggleBool == true)) {
-      onTime += (millis() - timer);
+      onTime = onTime + (millis() - timer);
       toggleBool = false;
       ++ onCounter;
-      timeElapsed = 0;
+      timeElapsed = millis();
     }
-    if (timeElapsed > elapsedTimeThreash) {
+    if ((toggleBool == false) && ((millis() - timeElapsed) > elapsedTimeThreash)) {
       onCounter = 0;
     }
   }
-
+  Serial.println(onCounter);
   // receive data package
   digitalWrite(13, HIGH);
   onTime = onTime / 10;
-  delay(onTime * 4);
-  int i = 0;
-  while (i < bufferSize) {
+  delay(onTime * 5);
+  for (int i = 0; i < bufferSize; i++) {
     inputBuffer[i] = getLstate(detectThreash);
     delay(onTime);
   }
@@ -132,8 +130,9 @@ void loop() {
   int indx = findMatchIndex(inputBuffer);
   if (indx == -1) {
     Serial.println("Error: Buffer overflown or package lost");
+  } else {
+    char *message = decode(indx);
+    Serial.print("Message received: ");
+    Serial.println(message);
   }
-  char *message = decode(indx);
-  Serial.print("Message received: ");
-  Serial.println(message);
 }
