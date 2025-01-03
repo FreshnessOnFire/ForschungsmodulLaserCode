@@ -40,8 +40,8 @@ char *decode(int idx) {
   }
   int i = 0;
   for (int j = 0; j < idx; j++) {
-    msg[i] = bitSet(msg[i], 0);
     msg[i] << 1;
+    msg[i] = bitSet(msg[i], 0);
     if ((j != 0) && ((j + 1) % 8 == 0)) {
       ++i;
     }

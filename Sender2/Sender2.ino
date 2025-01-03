@@ -18,7 +18,6 @@ void sendMsg(String sInput) {
 
   // OOK
   digitalWrite(13, HIGH);
-  int bits[sizeof(cInput) * 8];
   // sent startcode
   for (int i = 0; i < 24; i++) {
     laser(startCode[i]);
