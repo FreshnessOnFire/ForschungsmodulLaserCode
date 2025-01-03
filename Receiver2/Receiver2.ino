@@ -27,7 +27,7 @@ int getLstate(int threash) {
 
 char *decode(int idx) {
   // interprete message without stop code
-  byte inputMsg[idx];
+  unsigned char inputMsg[idx];
   for (int i = 0; i < idx; i++) {
     inputMsg[i] = inputBuffer[i];
   }
@@ -35,14 +35,17 @@ char *decode(int idx) {
   // turn bits into characters
   int charlen = sizeof(inputMsg) / 8;
   char msg[charlen];
+  for (int k = 0; k < charlen; ++k) {
+    msg[k] = '\0';
+  }
   int i = 0;
-  for (int j = 0; j < charlen; j++) {
-    msg[i] | inputBuffer[j];
+  for (int j = 0; j < idx; j++) {
+    msg[i] = bitSet(msg[i], 0);
     msg[i] << 1;
-    if ((j != 0) && (j % 8 == 0)) {
+    if ((j != 0) && ((j + 1) % 8 == 0)) {
       ++i;
     }
-    msg[++i] = '0';
+    msg[++i] = '\0';
   }
   return msg;
 }
