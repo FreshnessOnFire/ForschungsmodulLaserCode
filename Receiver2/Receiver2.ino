@@ -5,14 +5,15 @@ bool initialized = false;
 
 int detectThreash = 130;
 
-double onTime = 0;
+int onTime = 0;
+
 double timer = 0;
 bool toggleBool = false;
-int elapsedTimeThreash = 2000;
+int elapsedTimeThreash = 2000000;
 double f_wait = 0;
 
-int bufferSize = 256;
-byte inputBuffer[256];
+int bufferSize = 128;
+byte inputBuffer[128];
 
 int stopSize = 25;
 byte stopCode[25];
@@ -41,13 +42,20 @@ char *decode(int idx) {
   int i = 0;
   for (int j = 0; j < idx; j++) {
     msg[i] << 1;
-    msg[i] = bitSet(msg[i], 0);
+    bitWrite(msg[i], 0, inputMsg[j]);
     if ((j != 0) && ((j + 1) % 8 == 0)) {
       ++i;
     }
     msg[++i] = '\0';
   }
   return msg;
+}
+
+void debug(byte* buff) {
+  for (int i = 0; i < bufferSize; ++i) {
+    Serial.print((int)buff[i]);
+  }
+  Serial.println("");
 }
 
 int findMatchIndex(byte* inptArr) {
@@ -105,30 +113,46 @@ void loop() {
   // detect start code of possible data transmission
   int onCounter = 0;
   double timeElapsed = 0;
+  int timing[10];
   while (onCounter != 10) {
     if ((getLstate(detectThreash) == 1) && (toggleBool == false)) {
       toggleBool = true;
-      timer = millis();
+      timer = micros();
     } else if ((getLstate(detectThreash) == 0) && (toggleBool == true)) {
-      onTime = onTime + (millis() - timer);
+      timing[onCounter] = micros() - timer;
+      onTime = onTime + (micros() - timer);
       toggleBool = false;
       ++ onCounter;
-      timeElapsed = millis();
+      timeElapsed = micros();
     }
-    if ((toggleBool == false) && ((millis() - timeElapsed) > elapsedTimeThreash)) {
+    if ((toggleBool == false) && ((micros() - timeElapsed) > elapsedTimeThreash)) {
       onCounter = 0;
     }
   }
-  Serial.println(onCounter);
   // receive data package
   digitalWrite(13, HIGH);
-  onTime = onTime / 10;
+
+  // debug
+  double durchschnitt = onTime / 10000;
+
+
+  onTime = floor(onTime / 10000);
   delay(onTime * 5);
+  //delay(onTime / 3);
   for (int i = 0; i < bufferSize; i++) {
     inputBuffer[i] = getLstate(detectThreash);
     delay(onTime);
   }
   digitalWrite(13, LOW);
+
+  //debug
+  Serial.println(onTime);
+  Serial.println(durchschnitt);
+  debug(inputBuffer);
+
+  for (int i = 0; i <10; ++i){
+    Serial.println(timing[i]);
+  }
 
   // read binary message
   int indx = findMatchIndex(inputBuffer);

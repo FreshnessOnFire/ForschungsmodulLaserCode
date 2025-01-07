@@ -10,18 +10,7 @@ void laser(int state) {
   digitalWrite(LASER_PIN, state);
 }
 
-int *sendMsg(String sInput) {
-  // typeconversion String -> char*
-  int inputLen = sInput.length();
-  char *cInput = (char*)malloc(inputLen * sizeof(char));
-  sInput.toCharArray(cInput, inputLen);
-  int inBin[inputLen * 8];
-  int j = 0;
-  for (int i = 0; i < inputLen * 8; ++i) {
-    j = floor(i / 8);
-    inBin[i] = bitRead(cInput[j], i % 8);
-  }
-
+void sendMsg(char *input, int len) {
   // OOK
   digitalWrite(13, HIGH);
   // sent startcode
@@ -29,21 +18,21 @@ int *sendMsg(String sInput) {
     laser(startCode[i]);
     delay(waitMillis);
   }
+
   // send data package
-  j = 0;
-  for (int i = 0; i < sizeof(cInput) * 8; i++) {
-    j = floor(i / 8);
-    laser(bitRead(cInput[j], i % 8));
-    delay(waitMillis);
+  for (int i = 0; i < len; ++i) {
+    for (int j = 7; j >= 0; --j) {
+      laser(bitRead(input[i], j));
+      delay(waitMillis);
+    }
   }
+
   // sent stopcode
   for (int i = 0; i < 25; i++) {
     laser(stopCode[i]);
     delay(waitMillis);
   }
   digitalWrite(13, LOW);
-  free(cInput);
-  return inBin;
 }
 
 void setup() {
@@ -104,15 +93,18 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available()) {
-    String userInput = Serial.readStringUntil('\n');
-    int *sBin = sendMsg(userInput);
-    Serial.print("Message: '");
-    Serial.print(userInput);
-    Serial.print(" | ");
-    for (int i = 0; i < userInput.length() * 8; ++i) {
-      Serial.print(sBin[i]);
-    }
-    Serial.println("' has been send.");
+  char inputBuffer[512];
+  while(!Serial.available());
+  int i = 0;
+  while((inputBuffer[i] = Serial.read()) != '\n') {
+    ++i;
   }
+  inputBuffer[i] = '\0';
+  char userInput[i];
+  for (int j = 0; j <= i; ++j) {
+    userInput[j] = inputBuffer[j];
+  }
+  Serial.print(userInput);
+  sendMsg(userInput, i);
+  Serial.println(" has been send.");
 }
