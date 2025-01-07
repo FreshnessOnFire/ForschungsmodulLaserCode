@@ -5,9 +5,10 @@ void setup() {
   Serial.begin(9600);  
 }
 
-byte *toBinary(char *cInput, int len) {
+unsigned char *toBinary(char *cInput, int len) {
   //int inputLen = sizeof(cInput);
-  byte bytes[len * 8];
+  --len;
+  unsigned char bytes[len * 8];
   int counter = 0;
   for (int i = 0; i < len; ++i) {
     for (int j = 7; j >= 0; --j) {
@@ -34,7 +35,7 @@ char *fromBinary(byte *input, int idx) {
   int i = 0;
   for (int j = 0; j < idx; j++) {
     //msg[i] = msg[i] << 1;
-    bitWrite(msg[i], j % 8, inputMsg[j]);
+    bitWrite(msg[i], 7 - (j % 8), inputMsg[j]);
     //msg[i] & inputMsg[j];
     if ((j != 0) && (j % 8 == 0)) {
       //Serial.print(msg[i]);
@@ -64,8 +65,12 @@ void loop() {
   Serial.print("Send: '");
   Serial.print(userInput);
   Serial.print(" | ");
-  byte *binaryMsg = toBinary(userInput, i);
+  unsigned char *binaryMsg = toBinary(userInput, i);
   Serial.println("'");
+  for (int j = 0; j < i*8; ++j){
+    Serial.print(binaryMsg[j]);
+  }
+  Serial.println("");
   Serial.print("Decoded: '");
   Serial.print(fromBinary(binaryMsg, i * 8));
   Serial.println("'");
