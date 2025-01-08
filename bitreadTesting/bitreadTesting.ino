@@ -5,48 +5,33 @@ void setup() {
   Serial.begin(9600);  
 }
 
-unsigned char *toBinary(char *cInput, int len) {
-  //int inputLen = sizeof(cInput);
-  --len;
-  unsigned char bytes[len * 8];
+void toBinary(char *cInput, int len, uint8_t *bytes) {
   int counter = 0;
   for (int i = 0; i < len; ++i) {
     for (int j = 7; j >= 0; --j) {
-      Serial.print(bitRead(cInput[i], j));
-      bytes[counter] = bitRead(cInput[i], j);
+      bytes[counter] = (cInput[i] >> j) & 1;
+      Serial.print(bytes[counter]);
       ++counter;
     }
   }
-  return bytes;
 }
 
-char *fromBinary(byte *input, int idx) {
-  unsigned char inputMsg[idx];
-  for (int i = 0; i < idx; i++) {
-    inputMsg[i] = input[i];
-  }
-
+void fromBinary(uint8_t *input, int idx, char *msg) {
   // turn bits into characters
-  int charlen = sizeof(inputMsg) / 8;
-  char msg[charlen];
-  for (int k = 0; k < charlen; ++k) {
+  for (int k = 0; k < idx / 8; ++k) {
     msg[k] = '\0';
   }
-  int i = 0;
-  for (int j = 0; j < idx; j++) {
-    //msg[i] = msg[i] << 1;
-    bitWrite(msg[i], 7 - (j % 8), inputMsg[j]);
-    //msg[i] & inputMsg[j];
-    if ((j != 0) && (j % 8 == 0)) {
-      //Serial.print(msg[i]);
+  int charIdx = 0;
+  for (int bitIdx = 0; bitIdx < idx; bitIdx++) {
+    msg[charIdx] |= (input[bitIdx] << (7 - (bitIdx % 8)));
+    if ((bitIdx % 8) == 7) {
       for (int k = 7; k >= 0; --k) {
-        Serial.print(bitRead(msg[i], k));
+        Serial.print(bitRead(msg[charIdx], k));
       }
-      ++i;
+      charIdx++;
     }
-    msg[++i] = '\0';
   }
-  return msg;
+  msg[charIdx] = '\0';
 }
 
 void loop() {
@@ -65,14 +50,18 @@ void loop() {
   Serial.print("Send: '");
   Serial.print(userInput);
   Serial.print(" | ");
-  unsigned char *binaryMsg = toBinary(userInput, i);
+  uint8_t binaryMsg[(i - 1) * 8];
+  toBinary(userInput, i - 1, binaryMsg);
   Serial.println("'");
-  for (int j = 0; j < i*8; ++j){
-    Serial.print(binaryMsg[j]);
-  }
+  /*for (int j = 0; j < (i - 1) * 8; ++j){
+    Serial.println(binaryMsg[j]);
+  }*/
   Serial.println("");
   Serial.print("Decoded: '");
-  Serial.print(fromBinary(binaryMsg, i * 8));
+  char msgFromBin[i];
+  fromBinary(binaryMsg, (i - 1) * 8, msgFromBin);
+  Serial.print(" | ");
+  Serial.print(msgFromBin);
   Serial.println("'");
 
 }
