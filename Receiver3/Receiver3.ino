@@ -12,8 +12,8 @@ bool toggleBool = false;
 int elapsedTimeThreash = 2000000;
 double f_wait = 0;
 
-int bufferSize = 128;
-uint8_t inputBuffer[128];
+int bufferSize = 25000;
+uint8_t inputBuffer[25000];
 
 int stopSize = 25;
 byte stopCode[25];
@@ -45,6 +45,7 @@ void decode(int idx, char *msg) {
 }
 
 void debug(uint8_t* buff) {
+  Serial.println("Bits in inputBuffer: ");
   for (int i = 0; i < bufferSize; ++i) {
     Serial.print((int)buff[i]);
   }
@@ -112,7 +113,9 @@ void loop() {
       toggleBool = true;
       timer = micros();
     } else if ((getLstate(detectThreash) == 0) && (toggleBool == true)) {
+      //debug
       timing[onCounter] = micros() - timer;
+
       onTime = onTime + (micros() - timer);
       toggleBool = false;
       ++ onCounter;
@@ -127,10 +130,10 @@ void loop() {
   digitalWrite(13, HIGH);
 
   // debug
-  double durchschnitt = onTime / 10000;
+  //double durchschnitt = onTime / 10000;
 
-  onTime = floor(onTime / 10000);
-  delay(onTime * 5);
+  onTime = ceil(onTime / 10000) + 1;
+  delay(onTime * 6);
 
   //debug
   //delay(onTime / 3);
@@ -142,10 +145,15 @@ void loop() {
   digitalWrite(13, LOW);
 
   //debug
+  //Serial.println(onTime);
+  Serial.print("Average clock tick [ms]: ");
   Serial.println(onTime);
-  Serial.println(durchschnitt);
-  debug(inputBuffer);
-  for (int i = 0; i <10; ++i){
+  //debug(inputBuffer);
+  Serial.println("Individual clock ticks [ms]: ");
+  for (int i = 0; i < 10; ++i){
+    Serial.print("Tick ");
+    Serial.print(i + 1);
+    Serial.print(": ");
     Serial.println(timing[i]);
   }
 
@@ -157,7 +165,10 @@ void loop() {
     char message[indx];
     Serial.print("Message received: ");
     decode(indx, message);
-    Serial.print(" | ");
+    Serial.println(" | ");
     Serial.println(message);
+    Serial.print("Package size: ");
+    Serial.print(indx / 8);
+    Serial.println(" Byte");
   }
 }

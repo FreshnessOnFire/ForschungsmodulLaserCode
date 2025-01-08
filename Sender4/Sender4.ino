@@ -1,6 +1,6 @@
 #define LASER_PIN 10
 
-int waitMillis = 100;
+int waitMillis = 4;
 double frequency = 1 / (waitMillis / 1000);
 
 byte startCode[24];
@@ -36,9 +36,9 @@ void sendMsg(uint8_t *input, int len) {
 void encode(char *cInput, int len, uint8_t *bytes) {
   // encodes sequence of chars in sequence of bits
   int counter = 0;
-  for (int i = 0; i < len; ++i) {
-    for (int j = 7; j >= 0; --j) {
-      bytes[counter] = (cInput[i] >> j) & 1;
+  for (int charIdx = 0; charIdx < len; ++charIdx) {
+    for (int bitIdx = 7; bitIdx >= 0; --bitIdx) {
+      bytes[counter] = (cInput[charIdx] >> bitIdx) & 1;
       Serial.print(bytes[counter]);
       ++counter;
     }
@@ -103,16 +103,21 @@ void setup() {
 }
 
 void loop() {
-  char inputBuffer[512];
+  char inputBuffer[5150];
 
   // fetch input from serial buffer
   while(!Serial.available());
   int i = 0;
-  while((inputBuffer[i] = Serial.read()) != '\n') {
+  /*while((inputBuffer[i] = Serial.read()) != '\n') {
+    ++i;
+  }*/
+  char temp;
+  while((temp = Serial.read()) != '\n') {
+    inputBuffer[i] = temp;
     ++i;
   }
   inputBuffer[i] = '\0';
-  int bitLen = (i - 1) * 8;
+  int bitLen = i * 8;
 
   // extract message from inputBuffer
   char userInput[i];
@@ -123,11 +128,12 @@ void loop() {
   // encode message to binary
   uint8_t inputBin[bitLen];
   Serial.print("Message: '");
-  encode(userInput, i - 1, inputBin);
+  Serial.print(userInput);
   Serial.print(" | ");
+  encode(userInput, i, inputBin);
+  Serial.print("'");
 
   // send message through fso
-  Serial.print(userInput);
   sendMsg(inputBin, bitLen);
   Serial.println(" has been send.");
 }

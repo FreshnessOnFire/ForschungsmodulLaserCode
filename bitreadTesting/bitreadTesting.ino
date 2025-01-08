@@ -1,3 +1,4 @@
+#include <bitset>
 char inputBuffer[512];
 
 void setup() {
@@ -5,7 +6,7 @@ void setup() {
   Serial.begin(9600);  
 }
 
-void toBinary(char *cInput, int len, uint8_t *bytes) {
+void toBinary(char *cInput, int len, unsigned char *bytes) {
   int counter = 0;
   for (int i = 0; i < len; ++i) {
     for (int j = 7; j >= 0; --j) {
@@ -16,7 +17,7 @@ void toBinary(char *cInput, int len, uint8_t *bytes) {
   }
 }
 
-void fromBinary(uint8_t *input, int idx, char *msg) {
+void fromBinary(unsigned char *input, int idx, char *msg) {
   // turn bits into characters
   for (int k = 0; k < idx / 8; ++k) {
     msg[k] = '\0';
@@ -42,7 +43,7 @@ void loop() {
   while((inputBuffer[i] = Serial.read()) != '\n') {
     ++i;
   }
-  inputBuffer[i] = '\0';
+  inputBuffer[++i] = '\0';
   char userInput[i];
   for (int j = 0; j <= i; ++j) {
     userInput[j] = inputBuffer[j];
@@ -50,7 +51,7 @@ void loop() {
   Serial.print("Send: '");
   Serial.print(userInput);
   Serial.print(" | ");
-  uint8_t binaryMsg[(i - 1) * 8];
+  unsigned char binaryMsg[(i - 1) * 8];
   toBinary(userInput, i - 1, binaryMsg);
   Serial.println("'");
   /*for (int j = 0; j < (i - 1) * 8; ++j){
