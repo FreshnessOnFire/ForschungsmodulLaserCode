@@ -110,18 +110,19 @@ void loop() {
   int timing[10];
   while (onCounter != 10) {
     if ((getLstate(detectThreash) == 1) && (toggleBool == false)) {
+      // rising edge detected
       toggleBool = true;
       timer = micros();
     } else if ((getLstate(detectThreash) == 0) && (toggleBool == true)) {
-      //debug
+      // falling edge detected
       timing[onCounter] = micros() - timer;
-
       onTime = onTime + (micros() - timer);
       toggleBool = false;
       ++ onCounter;
       timeElapsed = micros();
     }
     if ((toggleBool == false) && ((micros() - timeElapsed) > elapsedTimeThreash)) {
+      // resetting counter after too much elapsed time
       onCounter = 0;
     }
   }
@@ -129,14 +130,8 @@ void loop() {
   // receive data package
   digitalWrite(13, HIGH);
 
-  // debug
-  //double durchschnitt = onTime / 10000;
-
   onTime = ceil(onTime / 10000) + 1;
   delay(onTime * 6);
-
-  //debug
-  //delay(onTime / 3);
 
   for (int i = 0; i < bufferSize; i++) {
     inputBuffer[i] = getLstate(detectThreash);
@@ -144,12 +139,9 @@ void loop() {
   }
   digitalWrite(13, LOW);
 
-  //debug
-  //Serial.println(onTime);
   Serial.print("Average clock tick [ms]: ");
   Serial.println(onTime);
-  //debug(inputBuffer);
-  Serial.println("Individual clock ticks [ms]: ");
+  Serial.println("Individual clock ticks [micro seconds]: ");
   for (int i = 0; i < 10; ++i){
     Serial.print("Tick ");
     Serial.print(i + 1);
