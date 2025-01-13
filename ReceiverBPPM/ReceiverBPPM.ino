@@ -70,6 +70,12 @@ int findMatchIndex(uint8_t* inptArr) {
   return -1;
 }
 
+void deBPPMify(uint8_t* binMsg) {
+  for (int i = 0; i < bufferSize / 2; i++) {
+    binMsg[i] = inputBuffer[i * 2];
+  }
+}
+
 void setup() {
   pinMode(13, OUTPUT);
   Serial.begin(9600);
@@ -149,8 +155,12 @@ void loop() {
     Serial.println(timing[i]);
   }
 
+  // interprete received PPM code as binary
+  uint8_t binMsg[inputBuffer / 2];
+  deBPPMify(binMsg);
+
   // read binary message
-  int indx = findMatchIndex(inputBuffer);
+  int indx = findMatchIndex(binMsg);
   if (indx == -1) {
     Serial.println("Error: Buffer overflown or package lost");
   } else {
