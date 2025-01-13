@@ -130,12 +130,12 @@ void loop() {
   // receive data package
   digitalWrite(13, HIGH);
 
-  onTime = ceil(onTime / 10000) + 1;
-  delay(onTime * 6);
+  onTime = ceil(onTime / 10) + 1000;
+  delayMicroseconds((onTime * 5) + (onTime / 2));
 
   for (int i = 0; i < bufferSize; i++) {
     inputBuffer[i] = getLstate(detectThreash);
-    delay(onTime);
+    delayMicroseconds(onTime);
   }
   digitalWrite(13, LOW);
 

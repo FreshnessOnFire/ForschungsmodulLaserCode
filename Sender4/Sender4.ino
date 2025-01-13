@@ -6,6 +6,8 @@ double frequency = 1 / (waitMillis / 1000);
 byte startCode[24];
 byte stopCode[25];
 
+int bufferSize = 5150;
+
 void laser(int state) {
   digitalWrite(LASER_PIN, state);
 }
@@ -103,7 +105,7 @@ void setup() {
 }
 
 void loop() {
-  char inputBuffer[5150];
+  char inputBuffer[bufferSize];
 
   // fetch input from serial buffer
   while(!Serial.available());
