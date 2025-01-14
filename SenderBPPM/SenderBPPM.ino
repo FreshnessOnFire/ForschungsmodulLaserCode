@@ -25,7 +25,7 @@ void sendMsg(uint8_t *input, int len) {
   // send data package
   for (int i = 0; i < len; ++i) {
     switch (input[i]) {
-      // binary PPM modulation
+      // binary PPM
       case 0:
         // pulse in second time slot represents 0
         laser(0);
@@ -47,7 +47,7 @@ void sendMsg(uint8_t *input, int len) {
   // sent stopcode
   for (int i = 0; i < 25; i++) {
     switch (stopCode[i]) {
-      // binary PPM modulation
+      // binary PPM
       case 0:
         // pulse in second time slot represents 0
         laser(0);
