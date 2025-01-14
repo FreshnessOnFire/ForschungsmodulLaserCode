@@ -27,13 +27,13 @@ void sendMsg(uint8_t *input, int len) {
     switch (input[i]) {
       // binary PPM modulation
       case 0:
-        // rising edge represents 0
+        // pulse in second time slot represents 0
         laser(0);
         delay(waitMillis);
         laser(1);
         break;
       case 1:
-        // falling edge represents 0
+        // pulse in first time slot represents 1
         laser(1);
         delay(waitMillis);
         laser(0);
@@ -49,13 +49,13 @@ void sendMsg(uint8_t *input, int len) {
     switch (stopCode[i]) {
       // binary PPM modulation
       case 0:
-        // rising edge represents 0
+        // pulse in second time slot represents 0
         laser(0);
         delay(waitMillis);
         laser(1);
         break;
       case 1:
-        // falling edge represents 0
+        // pulse in first time slot represents 1
         laser(1);
         delay(waitMillis);
         laser(0);
@@ -65,6 +65,7 @@ void sendMsg(uint8_t *input, int len) {
     }
     delay(waitMillis);
   }
+  laser(0);
   digitalWrite(13, LOW);
 }
 
@@ -78,6 +79,22 @@ void encode(char *cInput, int len, uint8_t *bytes) {
       ++counter;
     }
   }
+}
+
+void debug(uint8_t *bin, int len) {
+  for (int i = 0; i < len; i++) {
+    switch(bin[i]) {
+      case 0:
+        Serial.print("0");
+        Serial.print("1");
+        break;
+      case 1:
+        Serial.print("1");
+        Serial.print("0");
+        break;
+    }
+  }
+  Serial.println("");
 }
 
 void setup() {
@@ -170,5 +187,9 @@ void loop() {
 
   // send message through fso
   sendMsg(inputBin, bitLen);
-  Serial.println(" has been send.");
+  Serial.print(" has been send.");
+  Serial.print(" (");
+  Serial.print(i);
+  Serial.println(" Byte in size)");
+  debug(inputBin, bitLen);
 }

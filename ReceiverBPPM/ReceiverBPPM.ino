@@ -12,7 +12,7 @@ bool toggleBool = false;
 int elapsedTimeThreash = 2000000;
 double f_wait = 0;
 
-const int bufferSize = 2048;
+const int bufferSize = 32850;
 uint8_t inputBuffer[bufferSize];
 
 int stopSize = 25;
@@ -26,14 +26,14 @@ int getLstate(int threash) {
   }
 }
 
-void decode(int idx, char *msg) {
+void decode(int idx, char *msg, uint8_t *buf) {
   // turn bits into characters
   for (int k = 0; k < idx / 8; ++k) {
     msg[k] = '\0';
   }
   int charIdx = 0;
   for (int bitIdx = 0; bitIdx < idx; bitIdx++) {
-    msg[charIdx] |= (inputBuffer[bitIdx] << (7 - (bitIdx % 8)));
+    msg[charIdx] |= (buf[bitIdx] << (7 - (bitIdx % 8)));
     if ((bitIdx % 8) == 7) {
       for (int k = 7; k >= 0; --k) {
         Serial.print(bitRead(msg[charIdx], k));
@@ -42,12 +42,13 @@ void decode(int idx, char *msg) {
     }
   }
   msg[charIdx] = '\0';
+  Serial.println("");
 }
 
-void debug(uint8_t* buff) {
-  Serial.println("Bits in inputBuffer: ");
-  for (int i = 0; i < bufferSize; ++i) {
-    Serial.print((int)buff[i]);
+void debug(uint8_t* arr, int len) {
+  //Serial.println("Bits in inputBuffer: ");
+  for (int i = 0; i < len; ++i) {
+    Serial.print((int)arr[i]);
   }
   Serial.println("");
 }
@@ -136,16 +137,18 @@ void loop() {
   // receive data package
   digitalWrite(13, HIGH);
 
-  onTime = ceil(onTime / 10) + 1000;
-  delayMicroseconds((onTime * 5) + (onTime / 2));
+  onTime = ceil(onTime / 10000) + 1;
+  delay(onTime * 6);
 
   for (int i = 0; i < bufferSize; i++) {
+    digitalWrite(9, i % 2);
     inputBuffer[i] = getLstate(detectThreash);
-    delayMicroseconds(onTime);
+    delay(onTime);
   }
+  digitalWrite(9, LOW);
   digitalWrite(13, LOW);
 
-  Serial.print("Average clock tick [ms]: ");
+  Serial.print("Average clock tick [milli seconds]: ");
   Serial.println(onTime);
   Serial.println("Individual clock ticks [micro seconds]: ");
   for (int i = 0; i < 10; ++i){
@@ -156,18 +159,19 @@ void loop() {
   }
 
   // interprete received PPM code as binary
-  uint8_t binMsg[inputBuffer / 2];
+  uint8_t binMsg[bufferSize / 2];
   deBPPMify(binMsg);
 
   // read binary message
   int indx = findMatchIndex(binMsg);
   if (indx == -1) {
     Serial.println("Error: Buffer overflown or package lost");
+    debug(inputBuffer, bufferSize);
+    debug(binMsg, bufferSize / 2);
   } else {
     char message[indx];
     Serial.print("Message received: ");
-    decode(indx, message);
-    Serial.println(" | ");
+    decode(indx, message, binMsg);
     Serial.println(message);
     Serial.print("Package size: ");
     Serial.print(indx / 8);

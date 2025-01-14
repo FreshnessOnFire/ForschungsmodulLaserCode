@@ -134,6 +134,7 @@ void loop() {
   delay(onTime * 6);
 
   for (int i = 0; i < bufferSize; i++) {
+    digitalWrite(9, i % 2);
     inputBuffer[i] = getLstate(detectThreash);
     delay(onTime);
   }
