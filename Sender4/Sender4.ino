@@ -1,6 +1,6 @@
 #define LASER_PIN 10
 
-int waitMillis = 4;
+int waitMillis = 10;
 double frequency = 1 / (waitMillis / 1000);
 
 byte startCode[24];
