@@ -3,7 +3,8 @@
 bool inter = false;
 bool initialized = false;
 
-int detectThreash = 1000;
+int detectThreash = 0;
+int erroneosFilter = 2200;
 
 int onTime = 0;
 
@@ -16,14 +17,26 @@ const int bufferSize = 1024;
 uint8_t inputBuffer[bufferSize];
 
 int stopSize = 25;
-byte stopCode[25];
+byte stopCode[25];// = {0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
 
 int getLstate(int threash) {
-  if ((analogRead(DETECT_PIN) >= threash)) {
+  if (analogRead(DETECT_PIN) >= threash) {
     return 1;
   } else {
     return 0;
   }
+}
+
+int getLnAmpState(int threash, int *amp) {
+  if ((*amp = analogRead(DETECT_PIN)) >= threash) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int Lamp() {
+  return analogRead(DETECT_PIN);
 }
 
 void decode(int idx, char *msg) {
@@ -74,7 +87,7 @@ void setup() {
   pinMode(13, OUTPUT);
   Serial.begin(9600);
 
-  // 0 0 0 0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1
+  // 0 0 0 0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0
   stopCode[0]  = 0;
   stopCode[1]  = 0;
   stopCode[2]  = 0;
@@ -101,6 +114,23 @@ void setup() {
   stopCode[23] = 1;
   stopCode[24] = 0;
 
+  // adapt toggle threashold
+  delay(1000);
+  int amp;
+  int maxAmp = 0;
+  for (int i = 0; i < 100; i++) {
+    amp = analogRead(DETECT_PIN);
+    if (amp > maxAmp) {
+      maxAmp = amp;
+    }
+    delay(10);
+  }
+  detectThreash = maxAmp + 50;
+  Serial.print("Adaptive threashold initiated: ");
+  Serial.println(detectThreash);
+  Serial.print("Current ambient amlitude: ");
+  Serial.println(analogRead(DETECT_PIN));
+  Serial.println("-- Switching to listening mode --");
 }
 
 void loop() {
@@ -108,12 +138,13 @@ void loop() {
   int onCounter = 0;
   double timeElapsed = 0;
   int timing[10];
+
   while (onCounter != 10) {
     if ((getLstate(detectThreash) == 1) && (toggleBool == false)) {
       // rising edge detected
       toggleBool = true;
       timer = micros();
-    } else if ((getLstate(detectThreash) == 0) && ((micros() - timer) > 2000) && (toggleBool == true)) {
+    } else if ((getLstate(detectThreash) == 0) && ((micros() - timer) > erroneosFilter) && (toggleBool == true)) {
       // falling edge detected
       timing[onCounter] = micros() - timer;
       onTime = onTime + (micros() - timer);
@@ -125,6 +156,7 @@ void loop() {
       // resetting counter after too much elapsed time
       onCounter = 0;
     }
+    // debug
   }
 
   // receive data package
@@ -140,6 +172,7 @@ void loop() {
   }
   digitalWrite(13, LOW);
 
+  // print metadata
   Serial.print("Average clock tick [ms]: ");
   Serial.println(onTime);
   Serial.println("Individual clock ticks [micro seconds]: ");
@@ -149,6 +182,7 @@ void loop() {
     Serial.print(": ");
     Serial.println(timing[i]);
   }
+
 
   // read binary message
   int indx = findMatchIndex(inputBuffer);
