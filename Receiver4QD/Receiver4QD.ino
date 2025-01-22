@@ -156,7 +156,6 @@ void loop() {
       // resetting counter after too much elapsed time
       onCounter = 0;
     }
-    // debug
   }
 
   // receive data package
