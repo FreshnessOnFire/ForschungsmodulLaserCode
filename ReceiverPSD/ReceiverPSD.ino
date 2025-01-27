@@ -4,7 +4,7 @@ bool inter = false;
 bool initialized = false;
 
 int detectThreash = 0;
-int erroneosFilter = 3000;
+int erroneosFilter = 3500;
 
 int onTime = 0;
 
@@ -112,7 +112,7 @@ void loop() {
   double timeElapsed = 0;
   int timing[10];
 
-  // debug
+  //debug
   int i = 0;
   while (onCounter != 10) {
     if ((getLstate(detectThreash) == 1) && (toggleBool == false)) {
@@ -140,12 +140,16 @@ void loop() {
       onCounter = 0;
     }
   }
+  //debug
+  digitalWrite(9, 0);
 
   // receive data package
   digitalWrite(13, HIGH);
 
   onTime = ceil(onTime / 10000) + 1;
+  //onTime = 4;
   delay(onTime * 6);
+  delayMicroseconds(100);
 
   for (int i = 0; i < bufferSize; i++) {
     digitalWrite(9, (i + 1) % 2);
@@ -153,7 +157,6 @@ void loop() {
     delay(onTime);
   }
   digitalWrite(13, LOW);
-  digitalWrite(9, 0);
 
   // print metadata
   Serial.print("Average clock tick [ms]: ");
@@ -171,6 +174,7 @@ void loop() {
   int indx = findMatchIndex(inputBuffer);
   if (indx == -1) {
     Serial.println("Error: Buffer overflown or package lost");
+    debug(inputBuffer);
   } else {
     char message[indx];
     Serial.print("Message received: ");
