@@ -1,10 +1,12 @@
 #define DETECT_PIN 1
+#define X_PIN 2
+#define Y_PIN 3
 
 bool inter = false;
 bool initialized = false;
 
 int detectThreash = 0;
-int erroneosFilter = 3500;
+int erroneosFilter = 2200;
 
 int onTime = 0;
 
@@ -35,8 +37,8 @@ int getLnAmpState(int threash, int *amp) {
   }
 }
 
-int Lamp() {
-  return analogRead(DETECT_PIN);
+int Lamp(int pin) {
+  return analogRead(pin);
 }
 
 void decode(int idx, char *msg) {
@@ -112,17 +114,11 @@ void loop() {
   double timeElapsed = 0;
   int timing[10];
 
-  //debug
-  int i = 0;
   while (onCounter != 10) {
     if ((getLstate(detectThreash) == 1) && (toggleBool == false)) {
       // rising edge detected
       toggleBool = true;
       timer = micros();
-
-      //debug
-      digitalWrite(9, (i + 1) % 2);
-      ++i;
     } else if ((getLstate(detectThreash) == 0) && ((micros() - timer) > erroneosFilter) && (toggleBool == true)) {
       // falling edge detected
       timing[onCounter] = micros() - timer;
@@ -130,28 +126,21 @@ void loop() {
       toggleBool = false;
       ++ onCounter;
       timeElapsed = micros();
-
-      //debug
-      digitalWrite(9, (i + 1) % 2);
-      ++i;
     }
     if ((toggleBool == false) && ((micros() - timeElapsed) > elapsedTimeThreash)) {
       // resetting counter after too much elapsed time
       onCounter = 0;
     }
   }
-  //debug
-  digitalWrite(9, 0);
 
   // receive data package
   digitalWrite(13, HIGH);
 
   onTime = ceil(onTime / 10000) + 1;
   delay(onTime * 6);
-  delayMicroseconds(100);
 
   for (int i = 0; i < bufferSize; i++) {
-    digitalWrite(9, (i + 1) % 2);
+    digitalWrite(9, i % 2);
     inputBuffer[i] = getLstate(detectThreash);
     delay(onTime);
   }
@@ -173,7 +162,6 @@ void loop() {
   int indx = findMatchIndex(inputBuffer);
   if (indx == -1) {
     Serial.println("Error: Buffer overflown or package lost");
-    debug(inputBuffer);
   } else {
     char message[indx];
     Serial.print("Message received: ");
