@@ -22,7 +22,7 @@ void sendMsg(uint8_t *input, int len) {
   }
 
   // send data package
-  for (int i = 0; i < len; ++i) {
+  for (int i = 0; i < len; i++) {
     laser(input[i]);
     delay(waitMillis);
   }
@@ -47,6 +47,26 @@ void encode(char *cInput, int len, uint8_t *bytes) {
   }
 }
 
+void addParityBits(uint8_t *input, int inputLen, uint8_t *output) {
+  // adds a parity bit every byte
+  int bitCount = 0;
+  int outputIdx = 0;
+  for (int i = 0; i < inputLen; ++i) {
+    if ((i + 1) % 8 == 0) {
+      // 8th bit
+      output[outputIdx] = input[i];
+      ++outputIdx;
+      output[outputIdx] = bitCount % 2;
+      bitCount = 0;
+    } else {
+      // count the 1s in the byte
+      bitCount += input[i];
+      output[outputIdx] = input[i];
+    }
+    ++outputIdx;
+  }
+}
+
 void setup() {
   Serial.begin(9600);
   pinMode(LASER_PIN, OUTPUT);
@@ -59,6 +79,7 @@ void loop() {
   // fetch input from serial buffer
   while(!Serial.available());
   int i = 0;
+  
   char temp;
   while((temp = Serial.read()) != '\n') {
     inputBuffer[i] = temp;
@@ -80,6 +101,10 @@ void loop() {
   Serial.print(" | ");
   encode(userInput, i, inputBin);
   Serial.print("'");
+
+  // add parity bits for error detection
+  uint8_t parBinMsg[(int)(bitLen + ceil(bitLen / 8))];
+  addParityBits(inputBin, bitLen, parBinMsg);
 
   // send message through fso
   sendMsg(inputBin, bitLen);
