@@ -4,7 +4,7 @@ bool inter = false;
 bool initialized = false;
 
 int detectThreash = 0;
-int erroneosFilter = 3500;
+int erroneosFilter = 3000;
 
 int onTime = 0;
 
@@ -13,11 +13,12 @@ bool toggleBool = false;
 int elapsedTimeThreash = 2000000;
 double f_wait = 0;
 
-const int bufferSize = 1024;
-uint8_t inputBuffer[bufferSize];
-
-int stopSize = 25;
+const int stopSize = 25;
 byte stopCode[25] = {0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0};
+
+const int expectedMsgSize = 1024;
+const int bufferSize = expectedMsgSize * 8 + expectedMsgSize + stopSize + 100;
+uint8_t inputBuffer[bufferSize];
 
 int getLstate(int threash) {
   if (analogRead(DETECT_PIN) >= threash) {
@@ -41,13 +42,20 @@ int Lamp() {
 
 int deParityfy(int idx, uint8_t *binMsg) {
   int errorCount = 0;
+  int bitCount = 0;
   int msgIdx = 0;
   for (int i = 0; i < idx; i++) {
-    if ((i + 1) % 8 == 0) {
+    if ((i + 1) % 9 == 0) {
       // parity bit
-      errorCount += inputBuffer[i];
+      if ((bitCount % 2) != inputBuffer[i]) {
+        ++errorCount;
+      }
+      bitCount = 0;
     } else {
       binMsg[msgIdx] = inputBuffer[i];
+      if (inputBuffer[i] == 1) {
+        ++bitCount;
+      }
       ++msgIdx;
     }
   }
@@ -163,7 +171,6 @@ void loop() {
 
   onTime = ceil(onTime / 10000) + 1;
   delay(onTime * 6);
-  delayMicroseconds(100);
 
   for (int i = 0; i < bufferSize; i++) {
     digitalWrite(9, (i + 1) % 2);
@@ -190,12 +197,17 @@ void loop() {
     Serial.println("Error: Buffer overflown or package lost");
     debug(inputBuffer);
   } else {
+    // detect possible errors in transmission
     int errors;
     uint8_t binMsg[indx];
     errors = deParityfy(indx, binMsg);
+    
+    // decode from binary
     char message[indx / 8];
     Serial.print("Message received: ");
     decode(indx, message, binMsg);
+
+    // print metadata
     Serial.println(" | ");
     Serial.println(message);
     Serial.print("Package size: ");

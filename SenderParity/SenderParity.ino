@@ -55,16 +55,22 @@ void addParityBits(uint8_t *input, int inputLen, uint8_t *output) {
     if ((i + 1) % 8 == 0) {
       // 8th bit
       output[outputIdx] = input[i];
+      if (input[i] == 1) {
+        ++bitCount;
+      }
       ++outputIdx;
       output[outputIdx] = bitCount % 2;
       bitCount = 0;
     } else {
       // count the 1s in the byte
-      bitCount += input[i];
+      if (input[i] == 1) {
+        ++bitCount;
+      }
       output[outputIdx] = input[i];
     }
     ++outputIdx;
   }
+  Serial.println("");
 }
 
 void setup() {
@@ -103,10 +109,11 @@ void loop() {
   Serial.print("'");
 
   // add parity bits for error detection
-  uint8_t parBinMsg[(int)(bitLen + ceil(bitLen / 8))];
+  int parLen = (bitLen + (bitLen / 8));
+  uint8_t parBinMsg[(int)parLen];
   addParityBits(inputBin, bitLen, parBinMsg);
 
   // send message through fso
-  sendMsg(inputBin, bitLen);
+  sendMsg(parBinMsg, parLen);
   Serial.println(" has been send.");
 }
