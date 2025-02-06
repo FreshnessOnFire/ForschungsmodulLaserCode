@@ -70,7 +70,6 @@ void addParityBits(uint8_t *input, int inputLen, uint8_t *output) {
     }
     ++outputIdx;
   }
-  Serial.println("");
 }
 
 void setup() {
