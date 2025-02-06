@@ -72,6 +72,7 @@ int findMatchIndex(uint8_t* inptArr) {
 }
 
 void deBPPMify(uint8_t* binMsg) {
+  // turns BPP modulated message into decodeable bitstring
   for (int i = 0; i < bufferSize / 2; i++) {
     binMsg[i] = inputBuffer[i * 2];
   }

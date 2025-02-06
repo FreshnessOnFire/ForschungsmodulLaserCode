@@ -19,6 +19,7 @@ int stopSize = 25;
 byte stopCode[25];
 
 int getLstate(int threash) {
+  // returns if photodiode detects light above a certain threashold
   if ((analogRead(DETECT_PIN) >= threash)) {
     return 1;
   } else {
@@ -140,6 +141,7 @@ void loop() {
   }
   digitalWrite(13, LOW);
 
+  // print metadata
   Serial.print("Average clock tick [ms]: ");
   Serial.println(onTime);
   Serial.println("Individual clock ticks [micro seconds]: ");

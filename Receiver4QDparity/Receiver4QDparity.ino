@@ -21,6 +21,7 @@ const int bufferSize = expectedMsgSize * 8 + expectedMsgSize + stopSize + 100;
 uint8_t inputBuffer[bufferSize];
 
 int getLstate(int threash) {
+  // returns if photodiode detects light above a certain threashold
   if (analogRead(DETECT_PIN) >= threash) {
     return 1;
   } else {
@@ -29,6 +30,7 @@ int getLstate(int threash) {
 }
 
 int getLnAmpState(int threash, int *amp) {
+  // returns if photodiode detects light above a certain threashold and its amplitude
   if ((*amp = analogRead(DETECT_PIN)) >= threash) {
     return 1;
   } else {
@@ -41,6 +43,7 @@ int Lamp() {
 }
 
 int deParityfy(int idx, uint8_t *binMsg) {
+  // returns detected errors in transmission
   int errorCount = 0;
   int bitCount = 0;
   int msgIdx = 0;

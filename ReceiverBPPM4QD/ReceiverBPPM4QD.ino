@@ -19,6 +19,7 @@ int stopSize = 25;
 byte stopCode[25];
 
 int getLstate(int threash) {
+  // returns if photodiode detects light above a certain threashold
   if ((analogRead(DETECT_PIN) >= threash)) {
     return 1;
   } else {
@@ -72,6 +73,7 @@ int findMatchIndex(uint8_t* inptArr) {
 }
 
 void deBPPMify(uint8_t* binMsg) {
+  // turns BPP modulated message into decodeable bitstring
   for (int i = 0; i < bufferSize / 2; i++) {
     binMsg[i] = inputBuffer[i * 2];
   }
@@ -148,6 +150,7 @@ void loop() {
   digitalWrite(9, LOW);
   digitalWrite(13, LOW);
 
+  // print metadata
   Serial.print("Average clock tick [milli seconds]: ");
   Serial.println(onTime);
   Serial.println("Individual clock ticks [micro seconds]: ");

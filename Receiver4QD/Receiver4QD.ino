@@ -20,6 +20,7 @@ int stopSize = 25;
 byte stopCode[25] = {0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0};
 
 int getLstate(int threash) {
+  // returns if photodiode detects light above a certain threashold
   if (analogRead(DETECT_PIN) >= threash) {
     return 1;
   } else {
@@ -28,6 +29,7 @@ int getLstate(int threash) {
 }
 
 int getLnAmpState(int threash, int *amp) {
+  // returns if photodiode detects light above a certain threashold and its amplitude
   if ((*amp = analogRead(DETECT_PIN)) >= threash) {
     return 1;
   } else {

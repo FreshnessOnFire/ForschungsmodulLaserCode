@@ -73,6 +73,7 @@ int findMatchIndex(uint8_t* inptArr) {
 }
 
 void deBPPMify(uint8_t* binMsg) {
+  // turns BPP modulated message into decodeable bitstring
   for (int i = 0; i < bufferSize / 2; i++) {
     binMsg[i] = inputBuffer[i * 2];
   }
@@ -141,6 +142,7 @@ void loop() {
   digitalWrite(9, LOW);
   digitalWrite(13, LOW);
 
+  // print metadata
   Serial.print("Average clock tick [milli seconds]: ");
   Serial.println(onTime);
   Serial.println("Individual clock ticks [micro seconds]: ");

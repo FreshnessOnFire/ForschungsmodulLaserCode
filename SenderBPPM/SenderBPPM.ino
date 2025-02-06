@@ -160,9 +160,6 @@ void loop() {
   // fetch input from serial buffer
   while(!Serial.available());
   int i = 0;
-  /*while((inputBuffer[i] = Serial.read()) != '\n') {
-    ++i;
-  }*/
   char temp;
   while((temp = Serial.read()) != '\n') {
     inputBuffer[i] = temp;
